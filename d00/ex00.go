@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"github.com/fatih/color"
 	"os"
 	"strconv"
 )
@@ -21,12 +22,12 @@ func main() {
 
 		num, err := strconv.Atoi(input)
 		if err != nil {
-			fmt.Println("На ввод должны поступать только числа!", err)
+			color.Red("На ввод должны поступать только числа! Ошибка: %v", err)
 			break
 		}
 
 		if num >= 100000 || num <= -100000 {
-			fmt.Println("Число выходит из диапазона [-100000, 100000].")
+			color.Red("Число выходит из диапазона [-100000, 100000].")
 			break
 		}
 
@@ -34,7 +35,7 @@ func main() {
 	}
 
 	if err := scanner.Err(); err != nil {
-		fmt.Println("Ошибка при чтении ввода:", err)
+		color.Red("Ошибка при чтении ввода:", err)
 	}
 
 	fmt.Println("Считанные числа:", numbers)
