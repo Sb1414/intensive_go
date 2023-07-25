@@ -9,6 +9,7 @@ import (
 
 func main() {
 	scanner := bufio.NewScanner(os.Stdin)
+	var numbers []int
 
 	for scanner.Scan() {
 		input := scanner.Text()
@@ -28,9 +29,13 @@ func main() {
 			fmt.Println("Число выходит из диапазона [-100000, 100000].")
 			break
 		}
+
+		numbers = append(numbers, num)
 	}
 
 	if err := scanner.Err(); err != nil {
 		fmt.Println("Ошибка при чтении ввода:", err)
 	}
+
+	fmt.Println("Считанные числа:", numbers)
 }
