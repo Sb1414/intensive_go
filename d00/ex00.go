@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/fatih/color"
 	"os"
+	"sort"
 	"strconv"
 )
 
@@ -39,4 +40,67 @@ func main() {
 	}
 
 	fmt.Println("Считанные числа:", numbers)
+
+	// среднее значение
+	if len(numbers) > 0 {
+		sum := 0
+		for _, num := range numbers {
+			sum += num
+		}
+		average := float64(sum) / float64(len(numbers))
+
+		fmt.Printf("Mean: %.2f\n", average)
+	} else {
+		fmt.Printf("Mean: %.2f\n", numbers[0])
+	}
+
+	// Вычисляем медиану
+	if len(numbers) > 0 {
+		sort.Ints(numbers)
+		median := 0.0
+		length := len(numbers)
+		if length%2 == 1 {
+			median = float64(numbers[length/2])
+		} else {
+			median = float64(numbers[length/2-1]+numbers[length/2]) / 2.0
+		}
+
+		fmt.Printf("Median: %.2f\n", median)
+	} else {
+		fmt.Printf("Median: %.2f\n", numbers[0])
+	}
+
+	// Вычисляем моду
+	if len(numbers) > 0 {
+		sort.Ints(numbers)
+		mode := calculateMode(numbers)
+		fmt.Printf("Mode: %d\n", mode)
+	} else {
+		fmt.Printf("Mode: %d\n", numbers[0])
+	}
+}
+
+// вычисление моды
+func calculateMode(numbers []int) int {
+	frequency := make(map[int]int)
+
+	// частота встречаемости чисел
+	for _, num := range numbers {
+		frequency[num]++
+	}
+
+	// число с наибольшей частотой встречаемости
+	maxFrequency := 0
+	mode := 0
+	for num, freq := range frequency {
+		if freq > maxFrequency {
+			maxFrequency = freq
+			mode = num
+		} else if freq == maxFrequency && num < mode {
+			// если есть несколько чисел с одинаковой частотой, выбираем наименьшее из них
+			mode = num
+		}
+	}
+
+	return mode
 }
