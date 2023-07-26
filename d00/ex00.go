@@ -78,6 +78,8 @@ func main() {
 	} else {
 		fmt.Printf("Mode: %d\n", numbers[0])
 	}
+
+	fmt.Printf("SD: %.2f\n", standardDeviation(numbers))
 }
 
 // вычисление моды
@@ -103,4 +105,22 @@ func calculateMode(numbers []int) int {
 	}
 
 	return mode
+}
+
+func standardDeviation(numbers []int) float64 {
+	sum := 0
+	for _, num := range numbers {
+		sum += num
+	}
+	mean := float64(sum) / float64(len(numbers))
+
+	variance := 0.0
+
+	for _, num := range numbers {
+		diff := float64(num) - mean
+		variance += diff * diff
+	}
+
+	variance /= float64(len(numbers))
+	return (variance)
 }
