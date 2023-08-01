@@ -7,6 +7,8 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"path/filepath"
+	"strings"
 )
 
 type XMLRecipe struct {
@@ -108,6 +110,27 @@ func convertToXML(recipe *JSONRecipe) (*XMLRecipe, error) {
 	return xmlRecipe, nil
 }
 
+func writeXML(xmlRecipe *XMLRecipe, xmlFileName string) error {
+	xmlFile, err := os.Create(xmlFileName)
+	if err != nil {
+		return err
+	}
+	defer xmlFile.Close()
+
+	xmlData, err := xml.MarshalIndent(xmlRecipe, "", "    ")
+	if err != nil {
+		return err
+	}
+
+	_, err = xmlFile.Write(xmlData)
+	if err != nil {
+		return err
+	}
+
+	fmt.Printf("JSON file successfully converted to XML and saved as '%s'\n", xmlFileName)
+	return nil
+}
+
 func main() {
 	xmlFileName := flag.String("f", "", "Path to the XML or JSON file")
 	flag.Parse()
@@ -127,8 +150,35 @@ func main() {
 
 	if isXML(*xmlFileName) {
 		recipe, err = readXML(*xmlFileName)
+		if err != nil {
+			fmt.Printf("Error while reading the XML file: %v\n", err)
+			return
+		}
+
+		jsonRecipe, err := json.MarshalIndent(recipe, "", "    ")
+		if err != nil {
+			fmt.Printf("Error while converting XML to JSON: %v\n", err)
+			return
+		}
+
+		prettyPrint(jsonRecipe)
 	} else if isJSON(*xmlFileName) {
+		// Convert JSON to XML
 		recipe, err = readJSON(*xmlFileName)
+		if jsonRecipe, ok := recipe.(*JSONRecipe); ok {
+			xmlRecipe, err := convertToXML(jsonRecipe)
+			if err != nil {
+				fmt.Printf("Error while converting JSON to XML: %v\n", err)
+				return
+			}
+			prettyPrint(xmlRecipe)
+			xmlOutFileName := strings.TrimSuffix(*xmlFileName, filepath.Ext(*xmlFileName)) + ".xml"
+			if err := writeXML(xmlRecipe, xmlOutFileName); err != nil {
+				fmt.Printf("Error while writing XML to file: %v\n", err)
+			}
+		} else {
+			fmt.Println("Invalid JSON format.")
+		}
 	} else {
 		fmt.Println("Invalid file format. Supported formats are XML and JSON.")
 		return
@@ -141,19 +191,6 @@ func main() {
 
 	prettyPrint(recipe)
 
-	if isJSON(*xmlFileName) {
-		// Convert JSON to XML
-		if jsonRecipe, ok := recipe.(*JSONRecipe); ok {
-			xmlRecipe, err := convertToXML(jsonRecipe)
-			if err != nil {
-				fmt.Printf("Error while converting JSON to XML: %v\n", err)
-				return
-			}
-			prettyPrint(xmlRecipe)
-		} else {
-			fmt.Println("Invalid JSON format.")
-		}
-	}
 }
 
 func prettyPrint(data interface{}) {
