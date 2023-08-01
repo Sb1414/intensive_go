@@ -110,6 +110,30 @@ func convertToXML(recipe *JSONRecipe) (*XMLRecipe, error) {
 	return xmlRecipe, nil
 }
 
+func convertToJSON(recipe *XMLRecipe) (*JSONRecipe, error) {
+	jsonRecipe := &JSONRecipe{}
+
+	for _, xcake := range recipe.Cakes {
+		jsonCake := JSONCake{
+			Name: xcake.Name,
+			Time: xcake.StoveTime,
+		}
+
+		for _, xitem := range xcake.Ingredients {
+			jsonItem := JSONItem{
+				IngredientName:  xitem.ItemName,
+				IngredientCount: xitem.ItemCount,
+				IngredientUnit:  xitem.ItemUnit,
+			}
+			jsonCake.Ingredients = append(jsonCake.Ingredients, jsonItem)
+		}
+
+		jsonRecipe.Cakes = append(jsonRecipe.Cakes, jsonCake)
+	}
+
+	return jsonRecipe, nil
+}
+
 func writeXML(xmlRecipe *XMLRecipe, xmlFileName string) error {
 	xmlFile, err := os.Create(xmlFileName)
 	if err != nil {
@@ -131,6 +155,27 @@ func writeXML(xmlRecipe *XMLRecipe, xmlFileName string) error {
 	return nil
 }
 
+func writeJSON(jsonRecipe *JSONRecipe, jsonFileName string) error {
+	jsonFile, err := os.Create(jsonFileName)
+	if err != nil {
+		return err
+	}
+	defer jsonFile.Close()
+
+	jsonData, err := json.MarshalIndent(jsonRecipe, "", "    ")
+	if err != nil {
+		return err
+	}
+
+	_, err = jsonFile.Write(jsonData)
+	if err != nil {
+		return err
+	}
+
+	fmt.Printf("XML file successfully converted to JSON and saved as '%s'\n", jsonFileName)
+	return nil
+}
+
 func main() {
 	xmlFileName := flag.String("f", "", "Path to the XML or JSON file")
 	flag.Parse()
@@ -146,17 +191,38 @@ func main() {
 	}
 
 	var recipe interface{}
-	var err error
+	//var err error
 
 	if isXML(*xmlFileName) {
-		recipe, err = readXML(*xmlFileName)
+		xmlRecipe, err := readXML(*xmlFileName)
 		if err != nil {
 			fmt.Printf("Error while reading the XML file: %v\n", err)
 			return
 		}
 
-		prettyPrint(recipe) // Directly print the XML data
+		prettyPrint(xmlRecipe)
+
+		// Convert XML to JSON
+		jsonRecipe, err := convertToJSON(xmlRecipe)
+		if err != nil {
+			fmt.Printf("Error while converting XML to JSON: %v\n", err)
+			return
+		}
+
+		// Save JSON to file
+		jsonOutFileName := strings.TrimSuffix(*xmlFileName, filepath.Ext(*xmlFileName)) + ".json"
+		if err := writeJSON(jsonRecipe, jsonOutFileName); err != nil {
+			fmt.Printf("Error while writing JSON to file: %v\n", err)
+		}
 	} else if isJSON(*xmlFileName) {
+		// Convert JSON to XML
+		jsonRecipe, err := readJSON(*xmlFileName)
+		if err != nil {
+			fmt.Printf("Error while reading the JSON file: %v\n", err)
+			return
+		}
+
+		prettyPrint(jsonRecipe)
 		// Convert JSON to XML
 		recipe, err = readJSON(*xmlFileName)
 		if jsonRecipe, ok := recipe.(*JSONRecipe); ok {
