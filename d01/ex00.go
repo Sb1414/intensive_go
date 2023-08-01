@@ -155,13 +155,7 @@ func main() {
 			return
 		}
 
-		jsonRecipe, err := json.MarshalIndent(recipe, "", "    ")
-		if err != nil {
-			fmt.Printf("Error while converting XML to JSON: %v\n", err)
-			return
-		}
-
-		prettyPrint(jsonRecipe)
+		prettyPrint(recipe) // Directly print the XML data
 	} else if isJSON(*xmlFileName) {
 		// Convert JSON to XML
 		recipe, err = readJSON(*xmlFileName)
@@ -183,14 +177,6 @@ func main() {
 		fmt.Println("Invalid file format. Supported formats are XML and JSON.")
 		return
 	}
-
-	if err != nil {
-		fmt.Printf("Error while reading the file: %v\n", err)
-		return
-	}
-
-	prettyPrint(recipe)
-
 }
 
 func prettyPrint(data interface{}) {
